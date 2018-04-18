@@ -12,7 +12,9 @@
 .equ	read_64,	0x00	# read data from file function
 .equ	write_64,	0x01	# write data to file function
 .equ	exit_64,	0x3C	# exit program function
-
+.equ	stdin,		0
+.equ	stdout,		1
+.equ	stderr,		2
 .equ	tooval,	-1
 .equ	errval,	-2
 
@@ -42,7 +44,7 @@ beflen:
 	.quad		( . - befmsg ) 
 aftmsg:
 	.ascii	"After:\n"
-aftflen:
+aftlen:
 	.quad		( . - aftmsg ) 
 
 	.text
@@ -54,13 +56,13 @@ _start:
 	MOV	$write_64,%rax	# write function
 	MOV	$stdout,%rdi	# file handle in RDI
 	MOV	$promptmsg,%rsi	# RSI points to message
-	MOV	$promptlen,%rdx	# bytes to be written
+	MOV	promptlen,%rdx	# bytes to be written
 	SYSCALL
 	
 	MOV	$read_64,%rax	# read function
 	MOV	$stdin,%rdi	# file handle in RDI
 	MOV	$buffer,%rsi	# RSI points to data buffer
-	MOV	$bufsize,%rdx	# bytes to be read
+	MOV	bufsize,%rdx	# bytes to be read
 	SYSCALL
 
 	CMP	$0,%rax
@@ -68,45 +70,59 @@ _start:
 
 	MOV	%rax,b_read	# store count of read bytes
 
-	CMP	$bufsize,%rax	# whole file was read ?
+	CMP	bufsize,%rax	# whole file was read ?
 	JE	toobig		# probably not
 
 	MOV	$write_64,%rax	# write function
 	MOV	$stdout,%rdi	# file handle in RDI
 	MOV	$befmsg,%rsi	# RSI points to message
-	MOV	$beflen,%rdx	# bytes to be written
+	MOV	beflen,%rdx	# bytes to be written
 	SYSCALL
 
 	MOV	$write_64,%rax	# write function
 	MOV	$stdout,%rdi	# file handle in RDI
 	MOV	$buffer,%rsi	# offset to first character
-	MOV	$b_read,%rdx	# count of characters
+	MOV	b_read,%rdx	# count of characters
 	SYSCALL
 
 	MOV	$buffer,%rsi
 	MOV	%rsi,%rdi
-	MOV	$b_read,%rcx
+	MOV	b_read,%rcx
 	CLD
 next:
 	LODSB			# al := MEM[ rsi ]; rsi++
-	CMPB	$'a', %al
+	CMPB	$'0', %al
+	JB hopp
+	CMPB	$'9', %al
+	JA hopp 
+	MOVB	$'#', %al
+hopp:
+	CMPB	$'A', %al
 	JB skip
 	CMPB	$'z', %al
 	JA skip
-	OR	$0x20, %al
+	CMPB	$'Z', %al
+	JBE hop
+	CMPB	$'a', %al
+	JB skip
+hop:
+	XOR	$0x20, %al
+	#ADD	$32,%al
+	#AND	$0xDF, %al	
+
 skip:	STOSB			# MEM[ rdi ] := al; rdi++
 	LOOP next
 
 	MOV	$write_64,%rax	# write function
 	MOV	$stdout,%rdi	# file handle in RDI
 	MOV	$aftmsg,%rsi	# RSI points to message
-	MOV	$aftlen,%rdx	# bytes to be written
+	MOV	aftlen,%rdx	# bytes to be written
 	SYSCALL
 
 	MOV	$write_64,%rax	# write function
 	MOV	$stdout,%rdi	# file handle in RDI
 	MOV	$buffer,%rsi	# offset to first character
-	MOV	$b_read,%rdx	# count of characters
+	MOV	b_read,%rdx	# count of characters
 	SYSCALL
 
 	MOV	b_read,%rdi
@@ -116,7 +132,7 @@ toobig:
 	MOV	$write_64,%rax	# write function
 	MOV	$stderr,%rdi	# file handle in RDI
 	MOV	$toomsg,%rsi	# RSI points to toobig message
-	MOV	$toolen,%rdx	# bytes to be written
+	MOV	toolen,%rdx	# bytes to be written
 	SYSCALL
 	MOV	$tooval,%rdi
 	JMP	theend
@@ -125,7 +141,7 @@ error:
 	MOV	$write_64,%rax	# write function
 	MOV	$stderr,%rdi	# file handle in RDI
 	MOV	$errmsg,%rsi	# RSI points to file error message
-	MOV	$errlen,%rdx	# bytes to be written
+	MOV	errlen,%rdx	# bytes to be written
 	SYSCALL
 	MOV	$errval,%rdi
 
