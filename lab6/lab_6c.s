@@ -17,9 +17,10 @@ value:
 	.global main
 	
 main:
+	push %rax
 	mov value, %rsi
 	mov $fmt, %rdi
-	mov $0, %rax
+	mov $0, %rax	###liczab rejestrów zmiennoprzecinkowych wykorzystywanych przez printf
 	call printf
 
 	mov $0,%rdi

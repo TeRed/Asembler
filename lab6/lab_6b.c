@@ -24,6 +24,6 @@ void main( void )
 {
  int i;
 
- for( i = 0; i <= 10; i++ )
+ for( i = 0; i <= 50; i++ )
    printf( "FibC( %2d ) = %ld FibA = %ld\n", i, fibc( i ), fiba( i ) );
 }
