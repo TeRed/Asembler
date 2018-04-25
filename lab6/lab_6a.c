@@ -22,6 +22,6 @@ void main( void )
 {
  int i;
 
- for( i = 1; i <= 6; i++ )
-   printf( "FactC(%d) = %ld FactA = %ld\n", i, factc(i), facta(i) );
+ for( i = 1; i <= 50; i++ )
+   printf( "FactC(%2d) = %ld\nFactA     = %ld\n\n", i, factc(i), facta(i) );
 }
