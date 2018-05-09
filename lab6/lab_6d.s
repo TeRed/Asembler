@@ -1,9 +1,9 @@
 #----------------------------------------------------------------
-# Program lab_6c.s - Asemblery Laboratorium IS II rok
+# Program lab_6d.s - Asemblery Laboratorium IS II rok
 #----------------------------------------------------------------
 #
-#  To compile&link: gcc -no-pie -o lab_6c lab_6c.s
-#  To run: 	    ./lab_6c
+#  To compile&link: gcc -o lab_6d lab_6d.s
+#  To run: 	    ./lab_6d
 #
 #----------------------------------------------------------------
 
@@ -17,10 +17,10 @@ value:
 	.global main
 	
 main:
-	mov value, %rsi
-	mov $fmt, %rdi
+	mov value(%rip), %rsi
+	lea fmt(%rip), %rdi
 	mov $0, %rax
-	call printf
+	call *printf@GOTPCREL(%rip)
 
 	mov $0,%rdi
-	call exit
+	call *exit@GOTPCREL(%rip)
